@@ -32,7 +32,7 @@ String state;
     private float cashdepositamount;
 
     private String sql;
-    private String pinnumber;
+  
 
   void existingaccount() {
 
@@ -53,12 +53,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
             ResultSet rs2 = (ResultSet) ps.executeQuery();
          if(rs2.next()) {
               System.out.println("The user is valid");
-             }
-             else {
-               System.out.println("You are not valid");
-             }
 
-            conn2.close();
 
             Connection conn1 = (Connection) DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
@@ -103,13 +98,20 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
                 } finally {
                     in.close();
                 }
-            } conn1.close();
-            
-        } catch (SQLException ex) {
+            }
+            conn1.close();
+
+        } else {
+               System.out.println("You are not valid");
+             }
+ }catch (SQLException ex) {
             Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+         
   }
+
+          
+
 
 
 
@@ -433,7 +435,6 @@ public void withdraw() {
                 int cashwithdraw1=rs1.getInt("cashwithdraw");
                 int balance1=rs1.getInt("balance");
                 Date date1=rs1.getDate("Date1");
-
 
                 System.out.format("%s, %s, %s, %s, %s, %s\n", accountnumber1, cashdeposit1, cashwithdraw1, balance1, date1);
             }
