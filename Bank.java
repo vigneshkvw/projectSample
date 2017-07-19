@@ -58,7 +58,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
             Connection conn1 = (Connection) DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
 
-                sql = ("SELECT * FROM logbook ");
+                sql = ("SELECT * FROM logbook where accountnumber = ? ");
             PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sql);
             preparedSelect.setInt(1, account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
@@ -366,7 +366,7 @@ public void withdraw() {
             conn2.setAutoCommit(false);
             Connection conn1 = (Connection) DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-            System.out.println("Creating statement...");
+       
            
             sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
             PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
@@ -374,7 +374,7 @@ public void withdraw() {
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
                 int Balance6 = rs1.getInt("balance");
-            conn1.close();
+        
                 PreparedStatement ps = conn2.prepareStatement("update logbook set cashwithdraw = ?, balance = balance - cashwithdraw where accountnumber = ?");
                 while (rs1.next()) {
                     ps.setFloat(1, cashwithdraw1);
@@ -393,6 +393,8 @@ public void withdraw() {
                 preparedStatement1.setFloat(3, cashwithdraw1);
                 preparedStatement1.setFloat(4,   Balance6-cashwithdraw1);
                 preparedStatement1.executeUpdate();
+             
+               System.out.println("collect your cash");
             }
         } catch (SQLException ex) {
             Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
@@ -423,7 +425,7 @@ public void withdraw() {
                 int balance1=rs1.getInt("balance");
                 Date date1=rs1.getDate("Date1");
 
-                System.out.format("%s, %s, %s, %s, %s, %s\n", accountnumber1, cashdeposit1, cashwithdraw1, balance1, date1);
+                System.out.format("%s, %s, %s, %s %s\n", accountnumber1, cashdeposit1, cashwithdraw1, balance1, date1);
 
             }
 
