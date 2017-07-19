@@ -58,7 +58,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
             Connection conn1 = (Connection) DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
 
-                sql = ("SELECT * FROM logbook where accountnumber = ? ");
+                sql = ("SELECT * FROM logbook ");
             PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sql);
             preparedSelect.setInt(1, account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
@@ -130,7 +130,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
 
 			System.out.print("Enter account number: ");
 			account.setAccNo(in.nextInt());
-
+             AccNo=rnd.nextInt(1000)+1;
 			System.out.print("Enter your  address: ");
 			 account.setAddress(in.next());
 
@@ -367,36 +367,23 @@ public void withdraw() {
             Connection conn1 = (Connection) DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
             System.out.println("Creating statement...");
-            conn1.setAutoCommit(false);
+           
             sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
             PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
             preparedSelect.setInt(1,  account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
                 int Balance6 = rs1.getInt("balance");
+            conn1.close();
                 PreparedStatement ps = conn2.prepareStatement("update logbook set cashwithdraw = ?, balance = balance - cashwithdraw where accountnumber = ?");
-                while (true) {
+                while (rs1.next()) {
                     ps.setFloat(1, cashwithdraw1);
                     ps.setInt(2,  account.getAccNum());
-                    int i = ps.executeUpdate();
-                    System.out.println(i + " records affected");
-                    System.out.println("commit/rollback");
-                    String answer = br.readLine();
-                    if (answer.equals("commit")) {
-                        conn2.commit();
-                    }
-                    if (answer.equals("rollback")) {
-                        conn2.rollback();
-                    }
-                    System.out.println("Want to add more records y/n");
-                    String ans = br.readLine();
-                    if (ans.equals("n")) {
-                        break;
-                    }
+                    ps.executeUpdate();
+                    
                 }
-                conn2.commit();
-                System.out.println("record successfully saved");
-                conn2.close();
+                
+                
                 Connection conn3 = (Connection) DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
                 String insertTransacationTable = "INSERT INTO banking.transactiondetails" + "(AccNum,  cahdeposit,cashwithdraw, balance,Date1) VALUES" + "(?,?,?,?,curdate())";
@@ -404,7 +391,7 @@ public void withdraw() {
                 preparedStatement1.setInt(1,  account.getAccNum());
                 preparedStatement1.setFloat(2, cashdepositamount);
                 preparedStatement1.setFloat(3, cashwithdraw1);
-                preparedStatement1.setFloat(4, cashwithdraw1 - Balance6);
+                preparedStatement1.setFloat(4,   Balance6-cashwithdraw1);
                 preparedStatement1.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -424,7 +411,7 @@ public void withdraw() {
             "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
             System.out.println("Creating statement...");
             conn1.setAutoCommit(false);
-            sqlverification = ("select * from banking.transactiondetails where AccNum = ? order by AccNum limit 5 ");
+            sqlverification = ("select * from banking.transactiondetails where AccNum = ? order by balance limit 5 ");
             PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
             preparedSelect.setInt(1,  account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
@@ -437,6 +424,7 @@ public void withdraw() {
                 Date date1=rs1.getDate("Date1");
 
                 System.out.format("%s, %s, %s, %s, %s, %s\n", accountnumber1, cashdeposit1, cashwithdraw1, balance1, date1);
+
             }
 
 
