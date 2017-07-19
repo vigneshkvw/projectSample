@@ -1,10 +1,10 @@
 CREATE TABLE `banking`.`logbook` (
   `accountnumber` INT NOT NULL,
-  `pinNum` VARCHAR(45) NULL,
-  `name` VARCHAR(45) NULL,
-  `address` VARCHAR(45) NULL,
-  `state` VARCHAR(45) NULL,
-  `city` VARCHAR(45) NULL,
+  `pinNum` VARCHAR((254)) 'AES_ENCRYPT()',
+  `name` VARCHAR((254)) NULL,
+  `address` VARCHAR((254)) NULL,
+  `state` VARCHAR((254)) NULL,
+  `city` VARCHAR((254)) NULL,
   `pincode` INT NULL,
   `cashdeposit` FLOAT NULL,
   `cashwithdraw` FLOAT NULL,
@@ -22,3 +22,9 @@ CREATE TABLE `banking`.`transactiondetails` (
   `balance` FLOAT NULL,
   `Date1` DATE NULL,
   );
+  
+  
+  
+  
+ALTER TABLE `banking`.`logbook` 
+ADD UNIQUE INDEX `accountnumber_UNIQUE` (`accountnumber` ASC);
