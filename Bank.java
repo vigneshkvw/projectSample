@@ -1,22 +1,35 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
-package banking;
+package bankrefractor;
+
+/**
+ *
+ * @author viki
+ */
+
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
+import java.sql.Connection;
 
 
 
-public class Bank extends BankUtilities implements Transaction {
+ class Bank extends BankUtilities  {
+    private static Connection Connection;
 
 
 
 Account account = new Account();
 ResultSet rs = null;
     Statement stmt = null;
-  
+
 
 
 int accountnumber;
@@ -25,15 +38,19 @@ String address;
 String city;
 int pincode;
 String state;
-   
+
 
     private String sqlverification;
     private float cashwithdraw;
     private float cashdepositamount;
 
     private String sql;
-  
-
+static void getConnection()throws SQLException{
+    Connection =DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
+}
+    private Connection conn;
+    private Object ex;
   void existingaccount() {
 
  try {
@@ -41,11 +58,10 @@ String state;
             account.setAccNum(in.nextInt());
             System.out.print("Enter your  Pin Number: ");
 			 account.setPinNum(in.next());
-            Connection conn2 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-            
+            getConnection();
+           conn=Connection;
             sqlverification = ("SELECT * FROM banking.logbook where pinNum = ? AND accountnumber = ?");
-PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverification);
+            PreparedStatement ps = (PreparedStatement) conn.prepareStatement(sqlverification);
             ps.setString(1, account.getPinNum() );
             ps.setInt(2,  account.getAccNum());
 
@@ -55,11 +71,8 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
               System.out.println("The user is valid");
 
 
-            Connection conn1 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-
                 sql = ("SELECT * FROM logbook where accountnumber = ? ");
-            PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sql);
+            PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sql);
             preparedSelect.setInt(1, account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
@@ -93,24 +106,24 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
 
                         }
                     }
-                } catch (Exception ex) {
+                } catch (Exception e) {
                     System.out.println("SELF THROWN EXCEPTION IS--->" );
                 } finally {
                     in.close();
                 }
             }
-            conn1.close();
+            conn.close();
 
         } else {
                System.out.println("You are not valid");
              }
- }catch (SQLException ex) {
-            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
+ }catch (SQLException ex2) {
+            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex2);
         }
-         
+
   }
 
-          
+
 
 
 
@@ -165,6 +178,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
 
 				break;
 
+
 			case 2:
 				System.out.println("Enter the initial amount of deposit:");
 				Cashdeposit = in.nextFloat();
@@ -181,7 +195,7 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
 			createAccountInDB( account );
 
 		} catch (Exception e) {
-			System.out.println("Inbuilt Exception --> " + e);
+
 			System.exit(0);
 		}
 
@@ -200,15 +214,15 @@ PreparedStatement ps = (PreparedStatement) conn2.prepareStatement(sqlverificatio
 
 
 
-    private void checkBalance() {
+    private void checkBalance() throws SQLException {
      try {
-      
-            Connection conn1 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-            System.out.println("Creating statement...");
-            conn1.setAutoCommit(false);
-     sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
-PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
+
+            getConnection();
+           conn=Connection;
+           System.out.println("Creating statement...");
+            conn.setAutoCommit(false);
+            sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
+            PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sqlverification);
             preparedSelect.setInt(1, account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
@@ -219,15 +233,15 @@ System.out.println("your current balance is");
             }
         } catch (Exception e) {
                                  }
-
+conn.close();
     }
 
-	private void createAccountInDB( Account account ){
+	private void createAccountInDB( Account account ) throws SQLException{
 	 try {
-           Connection conn1 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
+            getConnection();
+              conn=Connection;
             String insertTableSQL = "INSERT INTO banking.logbook" + "(accountnumber,pinNum, name,address,state,city,pincode, cashdeposit,cashwithdraw, balance) VALUES" + "(?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement preparedStatement = conn1.prepareStatement(insertTableSQL);
+            PreparedStatement preparedStatement = conn.prepareStatement(insertTableSQL);
             preparedStatement.setInt(1, account.getAccNo());
             preparedStatement.setString(2, account.getPinNum());
             preparedStatement.setString(3, account.getName());
@@ -242,7 +256,7 @@ System.out.println("your current balance is");
 
 
             sqlverification = ("SELECT * FROM banking.logbook where accountnumber = ? ");
-PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
+PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sqlverification);
             preparedSelect.setInt(1, account.getAccNo());
              System.out.println("accountnumber\t\tpassword\t\tname\t\taddress\t\tstate\t\tcity \t\tpincode\t\tcashdeposit\t\tcashwithdraw\t\tbalance");
              System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -260,21 +274,13 @@ PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sq
                     int Balance2=rs1.getInt("balance");
           System.out.format("%s, %s, %s, %s, %s,%s,%s,%s,%s, %s\n", accountnumber1,pinnumber1, name1,address1,state1,city1,pincode1,cashdeposit1,cashwithdraw1,Balance2 );
     }
-             
-            Connection conn2 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-             String insertTransacationTable = "INSERT INTO banking.transactiondetails" + "(AccNum,cahdeposit,cashwithdraw, balance,Date1) VALUES" + "(?,?,?,?,())";
-            PreparedStatement preparedStatement1 = conn2.prepareStatement(insertTransacationTable);
-            preparedStatement1.setInt(1, account.getAccNo());
-            preparedStatement1.setFloat(2,account.getCashDeposit() );
-            preparedStatement1.setFloat(3,account.getcashwithdraw() );
-            preparedStatement1.setFloat(4,  account.getCashDeposit());
-preparedStatement1.setDate(5, account.getDate());
-            preparedStatement1.executeUpdate(insertTransacationTable);
-        
-             } catch (SQLException ex) {
 
+          
+
+             } catch (SQLException ex) {
+ ex.printStackTrace();
         }
+     conn.close();
 
 }
 
@@ -282,30 +288,24 @@ preparedStatement1.setDate(5, account.getDate());
 	public void deposit() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-           
+
             System.out.println("enter your ammount to deposit::");
             float cashdepositamount1 = Float.parseFloat(br.readLine());
             {
-                try {
-                    Class.forName("com.mysql.jdbc.Driver");
-                } catch (ClassNotFoundException e) {
-                    System.out.println("Where is your MySQL JDBC Driver?");
-                    e.printStackTrace();
-                    return;
-                }
-                Connection conn1 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-                conn1.setAutoCommit(false);
+           
+        getConnection();
+               conn=Connection;
+               conn.setAutoCommit(false);
                 System.out.println("Creating statement...");
                 sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
-                PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
+                PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sqlverification);
                 preparedSelect.setInt(1, account.getAccNum());
                 ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
                 while (rs1.next()) {
                     int Balance5 = rs1.getInt("balance");
-                    PreparedStatement ps = conn1.prepareStatement("update banking.logbook set cashdeposit= ?,balance=? where accountnumber=?");
+                    PreparedStatement ps = conn.prepareStatement("update banking.logbook set cashdeposit= ?,balance=? where accountnumber=?");
                     while (true) {
-                   
+
                         ps.setFloat(1, cashdepositamount1);
                         ps.setFloat(2, cashdepositamount1 + Balance5);
                         ps.setInt(3, account.getAccNum());
@@ -314,10 +314,10 @@ preparedStatement1.setDate(5, account.getDate());
                         System.out.println("commit/rollback");
                         String answer = br.readLine();
                         if (answer.equals("commit")) {
-                            conn1.commit();
+                            conn.commit();
                         }
                         if (answer.equals("rollback")) {
-                            conn1.rollback();
+                            conn.rollback();
                         }
                         System.out.println("Want to add more records y/n");
                         String ans = br.readLine();
@@ -325,24 +325,22 @@ preparedStatement1.setDate(5, account.getDate());
                             break;
                         }
                     }
-                    conn1.commit();
+                    conn.commit();
                     System.out.println("record successfully saved");
-                  
-                    Connection conn2 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
+
                     String insertTransacationTable = "INSERT INTO banking.transactiondetails" + "(AccNum,  cahdeposit,cashwithdraw, balance,Date1) VALUES" + "(?,?,?,?,curdate())";
-                    PreparedStatement preparedStatement1 = conn2.prepareStatement(insertTransacationTable);
+                    PreparedStatement preparedStatement1 = conn.prepareStatement(insertTransacationTable);
                     preparedStatement1.setInt(1, account.getAccNum());
                     preparedStatement1.setFloat(2, cashdepositamount1);
                     preparedStatement1.setFloat(3, cashwithdraw);
                     preparedStatement1.setFloat(4, cashdepositamount1 + Balance5);
                     preparedStatement1.executeUpdate();
-                }  conn1.close();
+                }  conn.close();
 
             }
 
         } catch (SQLException ex) {
-            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         } catch (IOException ex) {
             Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -351,7 +349,7 @@ preparedStatement1.setDate(5, account.getDate());
 public void withdraw() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-          
+
             System.out.println("Enter the amount to be withdrawn :");
             float cashwithdraw1 = Float.parseFloat(br.readLine());
             try {
@@ -361,60 +359,50 @@ public void withdraw() {
                 e.printStackTrace();
                 return;
             }
-            Connection conn2 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-            conn2.setAutoCommit(false);
-            Connection conn1 = (Connection) DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
-       
-           
+            getConnection();
+            conn=Connection;
+
             sqlverification = ("SELECT balance FROM banking.logbook where accountnumber = ? ");
-            PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
+            PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sqlverification);
             preparedSelect.setInt(1,  account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
                 int Balance6 = rs1.getInt("balance");
-        
-                PreparedStatement ps = conn2.prepareStatement("update logbook set cashwithdraw = ?, balance = balance - cashwithdraw where accountnumber = ?");
+
+                PreparedStatement ps = conn.prepareStatement("update logbook set cashwithdraw = ?, balance = ? where accountnumber = ?");
                 while (rs1.next()) {
                     ps.setFloat(1, cashwithdraw1);
+                    ps.setFloat(1, Balance6-cashwithdraw1- Balance6);
                     ps.setInt(2,  account.getAccNum());
                     ps.executeUpdate();
-                    
+
                 }
-                
-                
-                Connection conn3 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
                 String insertTransacationTable = "INSERT INTO banking.transactiondetails" + "(AccNum,  cahdeposit,cashwithdraw, balance,Date1) VALUES" + "(?,?,?,?,curdate())";
-                PreparedStatement preparedStatement1 = conn3.prepareStatement(insertTransacationTable);
+                PreparedStatement preparedStatement1 = conn.prepareStatement(insertTransacationTable);
                 preparedStatement1.setInt(1,  account.getAccNum());
                 preparedStatement1.setFloat(2, cashdepositamount);
                 preparedStatement1.setFloat(3, cashwithdraw1);
                 preparedStatement1.setFloat(4,   Balance6-cashwithdraw1);
                 preparedStatement1.executeUpdate();
-             
+
                System.out.println("collect your cash");
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+      e.printStackTrace();
+        } catch (IOException ex1) {
+            Logger.getLogger(Bank.class.getName()).log(Level.SEVERE, null, ex1);
         }
-            
-      
+
+
                         }
 
-
-    private void lasttransaction() {
+    private void lasttransaction() throws SQLException {
         try {
-          
-            Connection conn1 = (Connection) DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/Banking?useSSL=false","root", "viki");
+            getConnection();
+            conn=Connection;
             System.out.println("Creating statement...");
-            conn1.setAutoCommit(false);
             sqlverification = ("select * from banking.transactiondetails where AccNum = ? order by balance limit 5 ");
-            PreparedStatement preparedSelect = (PreparedStatement) conn1.prepareStatement(sqlverification);
+            PreparedStatement preparedSelect = (PreparedStatement) conn.prepareStatement(sqlverification);
             preparedSelect.setInt(1,  account.getAccNum());
             ResultSet rs1 = (ResultSet) preparedSelect.executeQuery();
             while (rs1.next()) {
@@ -432,11 +420,12 @@ public void withdraw() {
 
         } catch (SQLException ex) {
         System.out.println("sql error");
+         ex.printStackTrace();
         }
 
 
 
-
+conn.close();
         }
 
 }
